@@ -2,6 +2,8 @@ package vn.com.datnd.bandpilot.service;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +53,7 @@ import java.util.UUID;
 @Service
 public class CsvImportService {
 
+    private static final Logger log = LoggerFactory.getLogger(CsvImportService.class);
     private static final long MAX_FILE_SIZE = 1_048_576L; // 1 MB
     private static final int MAX_ROWS = 500;
 
@@ -376,6 +379,7 @@ public class CsvImportService {
             importedCount++;
         }
 
+        log.info("Text import complete: groupId={} imported={} skipped={}", groupId, importedCount, skippedRows.size());
         return new ImportResponse(importedCount, groupId, skippedRows);
     }
 }

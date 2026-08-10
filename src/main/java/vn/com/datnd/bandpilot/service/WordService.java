@@ -1,5 +1,7 @@
 package vn.com.datnd.bandpilot.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.com.datnd.bandpilot.dto.WordRequest;
@@ -33,6 +35,8 @@ import java.util.stream.Collectors;
 @Service
 public class WordService {
 
+    private static final Logger log = LoggerFactory.getLogger(WordService.class);
+
     private static final int MAX_EXAMPLES = 3;
     private static final Set<String> ALLOWED_TYPES = Set.of(
             "noun", "verb", "adjective", "adverb", "phrase"
@@ -63,6 +67,7 @@ public class WordService {
         validateWordRequest(request);
 
         if (wordEntryRepository.existsByWordIgnoreCase(request.getWord())) {
+            log.warn("Duplicate word rejected: '{}'", request.getWord());
             throw new DuplicateResourceException(
                     "A word already exists with the spelling: " + request.getWord());
         }
@@ -70,12 +75,10 @@ public class WordService {
         WordEntry entry = new WordEntry(request.getWord().trim(), request.getMeaning().trim());
         entry.setPhonetic(request.getPhonetic() != null ? request.getPhonetic().trim() : null);
         entry.setType(request.getType() != null ? request.getType().trim().toLowerCase() : null);
-        // status defaults to "New" in the entity
 
         WordEntry saved = wordEntryRepository.save(entry);
-
         saveExamples(request, saved);
-
+        log.info("Word created: id={} word='{}'", saved.getId(), saved.getWord());
         return toResponse(saved);
     }
 
@@ -108,13 +111,14 @@ public class WordService {
     @Transactional(readOnly = true)
     public List<WordResponse> getAllWords(String search, String type, String status) {
         List<WordEntry> all = wordEntryRepository.findAll();
-
-        return all.stream()
+        List<WordResponse> result = all.stream()
                 .filter(e -> matchesSearch(e, search))
                 .filter(e -> matchesType(e, type))
                 .filter(e -> matchesStatus(e, status))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        log.debug("getAllWords: search='{}' type='{}' status='{}' → {} results", search, type, status, result.size());
+        return result;
     }
 
     // ── Update ────────────────────────────────────────────────────────────────────
@@ -172,6 +176,7 @@ public class WordService {
         WordEntry entry = findEntryOrThrow(id);
         wordExampleRepository.deleteByWordEntry(entry);
         wordEntryRepository.delete(entry);
+        log.info("Word deleted: id={} word='{}'", id, entry.getWord());
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────────

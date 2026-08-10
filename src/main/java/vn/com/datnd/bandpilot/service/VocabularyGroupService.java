@@ -1,5 +1,7 @@
 package vn.com.datnd.bandpilot.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.com.datnd.bandpilot.dto.GroupDetailResponse;
@@ -39,6 +41,8 @@ import java.util.stream.Collectors;
 @Service
 public class VocabularyGroupService {
 
+    private static final Logger log = LoggerFactory.getLogger(VocabularyGroupService.class);
+
     private final VocabularyGroupRepository groupRepository;
     private final GroupWordMembershipRepository membershipRepository;
     private final WordEntryRepository wordEntryRepository;
@@ -75,6 +79,7 @@ public class VocabularyGroupService {
 
         VocabularyGroup group = new VocabularyGroup(request.getName().trim());
         VocabularyGroup saved = groupRepository.save(group);
+        log.info("Group created: id={} name='{}'", saved.getId(), saved.getName());
         return toResponse(saved, 0);
     }
 
@@ -157,6 +162,7 @@ public class VocabularyGroupService {
         VocabularyGroup group = findGroupOrThrow(id);
         membershipRepository.deleteByVocabularyGroup(group);
         groupRepository.delete(group);
+        log.info("Group deleted: id={} name='{}'", id, group.getName());
     }
 
     // ── Add word to group ─────────────────────────────────────────────────────────

@@ -33,8 +33,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Login endpoint is public
+                // Public endpoints
                 .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/health").permitAll()
                 // All other API endpoints require authentication
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll()
