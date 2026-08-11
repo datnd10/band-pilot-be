@@ -111,21 +111,22 @@ public class SrsService {
         return dueRecords.stream()
                 .map(record -> {
                     WordEntry word = record.getWordEntry();
-                    String firstExample = wordExampleRepository
-                            .findByWordEntryOrderBySortOrderAsc(word)
-                            .stream()
-                            .findFirst()
+                    List<WordExample> allExamples =
+                            wordExampleRepository.findByWordEntryOrderBySortOrderAsc(word);
+                    List<String> examplesList = allExamples.stream()
                             .map(WordExample::getSentence)
-                            .orElse(null);
+                            .collect(Collectors.toList());
 
-                    return new DueWordResponse(
+                    DueWordResponse dueWordResponse = new DueWordResponse(
                             word.getId(),
                             word.getWord(),
                             word.getMeaning(),
                             word.getPhonetic(),   // nullable
                             word.getType(),        // nullable
-                            firstExample           // nullable
+                            examplesList.isEmpty() ? null : examplesList.get(0)  // backward-compat
                     );
+                    dueWordResponse.setExamples(examplesList);
+                    return dueWordResponse;
                 })
                 .collect(Collectors.toList());
     }

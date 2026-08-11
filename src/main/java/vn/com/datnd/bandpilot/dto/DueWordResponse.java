@@ -1,5 +1,7 @@
 package vn.com.datnd.bandpilot.dto;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class DueWordResponse {
@@ -10,6 +12,7 @@ public class DueWordResponse {
     private String phonetic;
     private String type;
     private String example;
+    private List<String> examples = new ArrayList<>();
 
     // ── Constructors ──────────────────────────────────────────────────────────
 
@@ -74,5 +77,13 @@ public class DueWordResponse {
 
     public void setExample(String example) {
         this.example = example;
+    }
+
+    public List<String> getExamples() {
+        return examples;
+    }
+
+    public void setExamples(List<String> examples) {
+        this.examples = examples;
     }
 }
