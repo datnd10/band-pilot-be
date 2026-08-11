@@ -47,15 +47,18 @@ public class VocabularyGroupService {
     private final GroupWordMembershipRepository membershipRepository;
     private final WordEntryRepository wordEntryRepository;
     private final WordExampleRepository wordExampleRepository;
+    private final SrsService srsService;
 
     public VocabularyGroupService(VocabularyGroupRepository groupRepository,
                                    GroupWordMembershipRepository membershipRepository,
                                    WordEntryRepository wordEntryRepository,
-                                   WordExampleRepository wordExampleRepository) {
+                                   WordExampleRepository wordExampleRepository,
+                                   SrsService srsService) {
         this.groupRepository = groupRepository;
         this.membershipRepository = membershipRepository;
         this.wordEntryRepository = wordEntryRepository;
         this.wordExampleRepository = wordExampleRepository;
+        this.srsService = srsService;
     }
 
     // ── Create ────────────────────────────────────────────────────────────────────
@@ -190,6 +193,7 @@ public class VocabularyGroupService {
 
         GroupWordMembership membership = new GroupWordMembership(group, word);
         membershipRepository.save(membership);
+        srsService.initializeIfAbsent(word);
 
         int count = membershipRepository.findByVocabularyGroup(group).size();
         return toResponse(group, count);
@@ -280,6 +284,7 @@ public class VocabularyGroupService {
         // Associate with group
         GroupWordMembership membership = new GroupWordMembership(group, saved);
         membershipRepository.save(membership);
+        srsService.initializeIfAbsent(saved);
 
         return toWordResponse(saved);
     }

@@ -60,6 +60,16 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flyway database migrations -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
         <!-- CSV parsing for bulk import -->
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -106,6 +116,8 @@
             <version>1.9.3</version>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <build>

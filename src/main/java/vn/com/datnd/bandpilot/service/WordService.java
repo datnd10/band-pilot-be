@@ -14,6 +14,7 @@ import vn.com.datnd.bandpilot.exception.ResourceNotFoundException;
 import vn.com.datnd.bandpilot.exception.ValidationException;
 import vn.com.datnd.bandpilot.repository.WordEntryRepository;
 import vn.com.datnd.bandpilot.repository.WordExampleRepository;
+import vn.com.datnd.bandpilot.repository.SrsRepository;
 
 import java.util.List;
 import java.util.Set;
@@ -44,11 +45,14 @@ public class WordService {
 
     private final WordEntryRepository wordEntryRepository;
     private final WordExampleRepository wordExampleRepository;
+    private final SrsRepository srsRepository;
 
     public WordService(WordEntryRepository wordEntryRepository,
-                       WordExampleRepository wordExampleRepository) {
+                       WordExampleRepository wordExampleRepository,
+                       SrsRepository srsRepository) {
         this.wordEntryRepository = wordEntryRepository;
         this.wordExampleRepository = wordExampleRepository;
+        this.srsRepository = srsRepository;
     }
 
     // ── Create ────────────────────────────────────────────────────────────────────
@@ -94,7 +98,13 @@ public class WordService {
     @Transactional(readOnly = true)
     public WordResponse getWordById(UUID id) {
         WordEntry entry = findEntryOrThrow(id);
-        return toResponse(entry);
+        WordResponse response = toResponse(entry);
+        srsRepository.findById(entry.getId()).ifPresent(srs -> {
+            response.setNextReviewDate(srs.getNextReviewDate());
+            response.setInterval(srs.getInterval());
+            response.setRepetitions(srs.getRepetitions());
+        });
+        return response;
     }
 
     // ── Read all (with optional filters) ─────────────────────────────────────────

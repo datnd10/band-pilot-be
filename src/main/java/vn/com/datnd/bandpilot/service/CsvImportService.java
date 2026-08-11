@@ -61,15 +61,18 @@ public class CsvImportService {
     private final WordExampleRepository wordExampleRepository;
     private final VocabularyGroupRepository vocabularyGroupRepository;
     private final GroupWordMembershipRepository groupWordMembershipRepository;
+    private final SrsService srsService;
 
     public CsvImportService(WordEntryRepository wordEntryRepository,
                              WordExampleRepository wordExampleRepository,
                              VocabularyGroupRepository vocabularyGroupRepository,
-                             GroupWordMembershipRepository groupWordMembershipRepository) {
+                             GroupWordMembershipRepository groupWordMembershipRepository,
+                             SrsService srsService) {
         this.wordEntryRepository = wordEntryRepository;
         this.wordExampleRepository = wordExampleRepository;
         this.vocabularyGroupRepository = vocabularyGroupRepository;
         this.groupWordMembershipRepository = groupWordMembershipRepository;
+        this.srsService = srsService;
     }
 
     /**
@@ -152,6 +155,7 @@ public class CsvImportService {
                 entry.setType(type.trim().toLowerCase());
             }
             WordEntry saved = wordEntryRepository.save(entry);
+            srsService.initializeIfAbsent(saved);
 
             // Save example sentence if present
             if (example != null && !example.isBlank()) {
@@ -366,6 +370,7 @@ public class CsvImportService {
             if (phonetic != null && !phonetic.isBlank()) entry.setPhonetic(phonetic);
             if (type != null && !type.isBlank()) entry.setType(type.toLowerCase());
             WordEntry saved = wordEntryRepository.save(entry);
+            srsService.initializeIfAbsent(saved);
 
             if (example != null && !example.isBlank()) {
                 WordExample ex = new WordExample(saved, example, (short) 1);

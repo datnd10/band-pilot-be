@@ -1,6 +1,7 @@
 package vn.com.datnd.bandpilot.dto;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,11 @@ public class WordResponse {
     private String status;
     private Instant createdAt;
     private Instant updatedAt;
+
+    // SRS fields — null when no schedule exists for this word
+    private LocalDate nextReviewDate;
+    private Integer interval;
+    private Integer repetitions;
 
     // ── Constructors ──────────────────────────────────────────────────────────────
 
@@ -96,5 +102,29 @@ public class WordResponse {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDate getNextReviewDate() {
+        return nextReviewDate;
+    }
+
+    public void setNextReviewDate(LocalDate nextReviewDate) {
+        this.nextReviewDate = nextReviewDate;
+    }
+
+    public Integer getInterval() {
+        return interval;
+    }
+
+    public void setInterval(Integer interval) {
+        this.interval = interval;
+    }
+
+    public Integer getRepetitions() {
+        return repetitions;
+    }
+
+    public void setRepetitions(Integer repetitions) {
+        this.repetitions = repetitions;
     }
 }

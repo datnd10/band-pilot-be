@@ -31,6 +31,16 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    // ── 404 Static resource (favicon, etc.) ──────────────────────────────────────
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoStaticResource(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        // Browser auto-requests favicon.ico etc — suppress to WARN, not ERROR
+        log.debug("Static resource not found: {}", ex.getMessage());
+        return buildResponse(HttpStatus.NOT_FOUND, "Not found");
+    }
+
     // ── 409 Conflict ─────────────────────────────────────────────────────────────
 
     @ExceptionHandler(DuplicateResourceException.class)
@@ -64,7 +74,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        // Suppress noisy favicon/static resource errors
+        String message = ex.getMessage();
+        if (message != null && message.contains("favicon")) {
+            return buildResponse(HttpStatus.NOT_FOUND, "Not found");
+        }
+        log.error("Unexpected error: {}", message, ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
     }
 
