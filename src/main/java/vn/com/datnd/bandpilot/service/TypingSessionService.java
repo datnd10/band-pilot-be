@@ -12,9 +12,11 @@ import vn.com.datnd.bandpilot.entity.WordEntry;
 import vn.com.datnd.bandpilot.repository.TypingSessionRepository;
 import vn.com.datnd.bandpilot.repository.TypingSessionWordResultRepository;
 import vn.com.datnd.bandpilot.repository.WordEntryRepository;
+import vn.com.datnd.bandpilot.service.ReviewSessionService;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Business logic for saving typing-test sessions and updating word statuses.
@@ -65,9 +67,11 @@ public class TypingSessionService {
     @Transactional
     public TypingSessionResponse saveTypingSession(TypingSessionRequest request) {
         // 1. Persist the session header
+        UUID userId = ReviewSessionService.resolveUserId();
         TypingSession session = new TypingSession(
                 Instant.now(),
-                request.getResults().size()
+                request.getResults().size(),
+                userId
         );
         session = sessionRepository.save(session);
 

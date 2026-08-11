@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import vn.com.datnd.bandpilot.entity.WordEntry;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +30,12 @@ public interface WordEntryRepository extends JpaRepository<WordEntry, UUID> {
      * used for duplicate detection on update.
      */
     boolean existsByWordIgnoreCaseAndIdNot(String word, UUID id);
+
+    /**
+     * Batch case-insensitive lookup — used by SmartImportService to identify
+     * which candidate words already exist in the vocabulary.
+     */
+    List<WordEntry> findAllByWordIgnoreCaseIn(Collection<String> words);
 
     /**
      * Filters entries by status ("New", "Learning", "Known").

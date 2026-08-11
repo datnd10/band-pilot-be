@@ -1,11 +1,16 @@
 package vn.com.datnd.bandpilot.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.com.datnd.bandpilot.dto.ImportResponse;
+import vn.com.datnd.bandpilot.dto.SmartImportRequest;
+import vn.com.datnd.bandpilot.dto.SmartImportWordSuggestion;
 import vn.com.datnd.bandpilot.service.CsvImportService;
+import vn.com.datnd.bandpilot.service.SmartImportService;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -22,9 +27,12 @@ import java.util.UUID;
 public class ImportController {
 
     private final CsvImportService csvImportService;
+    private final SmartImportService smartImportService;
 
-    public ImportController(CsvImportService csvImportService) {
+    public ImportController(CsvImportService csvImportService,
+                            SmartImportService smartImportService) {
         this.csvImportService = csvImportService;
+        this.smartImportService = smartImportService;
     }
 
     /**
@@ -54,5 +62,24 @@ public class ImportController {
 
         ImportResponse response = csvImportService.importCsv(file, groupId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/v1/import/analyze
+     *
+     * <p>Analyses an English text passage and returns a list of vocabulary suggestions
+     * enriched with dictionary data (phonetic, part-of-speech, definition, example).
+     * Words already in the user's vocabulary are flagged with {@code alreadyExists=true}.
+     *
+     * @param request the request body containing the text to analyse
+     * @return 200 OK with a list of {@link SmartImportWordSuggestion}
+     */
+    @PostMapping("/analyze")
+    public ResponseEntity<List<SmartImportWordSuggestion>> analyzeText(
+            @Valid @RequestBody SmartImportRequest request) {
+
+        List<SmartImportWordSuggestion> suggestions =
+            smartImportService.analyzeText(request.getText());
+        return ResponseEntity.ok(suggestions);
     }
 }

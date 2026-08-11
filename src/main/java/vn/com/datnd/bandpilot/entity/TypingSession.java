@@ -28,6 +28,9 @@ public class TypingSession {
     @Column(name = "total_unique_words", nullable = false)
     private int totalUniqueWords;
 
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
     @OneToMany(
             mappedBy = "typingSession",
             cascade = CascadeType.ALL,
@@ -44,6 +47,13 @@ public class TypingSession {
     public TypingSession(Instant completedAt, int totalUniqueWords) {
         this.completedAt = completedAt;
         this.totalUniqueWords = totalUniqueWords;
+        this.userId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    }
+
+    public TypingSession(Instant completedAt, int totalUniqueWords, UUID userId) {
+        this.completedAt = completedAt;
+        this.totalUniqueWords = totalUniqueWords;
+        this.userId = userId;
     }
 
     // ── Getters & Setters ─────────────────────────────────────────────────────────
@@ -70,5 +80,13 @@ public class TypingSession {
 
     public List<TypingSessionWordResult> getWordResults() {
         return wordResults;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 }
