@@ -11,13 +11,16 @@ import vn.com.datnd.bandpilot.dto.WordRequest;
 import vn.com.datnd.bandpilot.dto.WordResponse;
 import vn.com.datnd.bandpilot.entity.GroupWordMembership;
 import vn.com.datnd.bandpilot.entity.GroupWordMembershipId;
+import vn.com.datnd.bandpilot.entity.SrsRecord;
 import vn.com.datnd.bandpilot.entity.VocabularyGroup;
 import vn.com.datnd.bandpilot.entity.WordEntry;
 import vn.com.datnd.bandpilot.entity.WordExample;
 import vn.com.datnd.bandpilot.exception.DuplicateResourceException;
 import vn.com.datnd.bandpilot.exception.ExampleLimitExceededException;
 import vn.com.datnd.bandpilot.exception.ResourceNotFoundException;
-import vn.com.datnd.bandpilot.exception.ValidationException;import vn.com.datnd.bandpilot.repository.GroupWordMembershipRepository;
+import vn.com.datnd.bandpilot.exception.ValidationException;
+import vn.com.datnd.bandpilot.repository.GroupWordMembershipRepository;
+import vn.com.datnd.bandpilot.repository.SrsRepository;
 import vn.com.datnd.bandpilot.repository.VocabularyGroupRepository;
 import vn.com.datnd.bandpilot.repository.WordEntryRepository;
 import vn.com.datnd.bandpilot.repository.WordExampleRepository;
@@ -48,17 +51,20 @@ public class VocabularyGroupService {
     private final WordEntryRepository wordEntryRepository;
     private final WordExampleRepository wordExampleRepository;
     private final SrsService srsService;
+    private final SrsRepository srsRepository;
 
     public VocabularyGroupService(VocabularyGroupRepository groupRepository,
                                    GroupWordMembershipRepository membershipRepository,
                                    WordEntryRepository wordEntryRepository,
                                    WordExampleRepository wordExampleRepository,
-                                   SrsService srsService) {
+                                   SrsService srsService,
+                                   SrsRepository srsRepository) {
         this.groupRepository = groupRepository;
         this.membershipRepository = membershipRepository;
         this.wordEntryRepository = wordEntryRepository;
         this.wordExampleRepository = wordExampleRepository;
         this.srsService = srsService;
+        this.srsRepository = srsRepository;
     }
 
     // ── Create ────────────────────────────────────────────────────────────────────
@@ -260,11 +266,14 @@ public class VocabularyGroupService {
                     "A word already exists with the spelling: " + request.getWord().trim());
         }
 
-        // Save word
+        // Save word — use saveAndFlush + reload to ensure ID is populated before SRS init
         WordEntry entry = new WordEntry(request.getWord().trim(), request.getMeaning().trim());
         entry.setPhonetic(request.getPhonetic() != null ? request.getPhonetic().trim() : null);
         entry.setType(request.getType() != null ? request.getType().trim().toLowerCase() : null);
-        WordEntry saved = wordEntryRepository.save(entry);
+        WordEntry saved = wordEntryRepository.saveAndFlush(entry);
+        // Reload from DB to guarantee the UUID primary key is present in the managed entity
+        saved = wordEntryRepository.findById(saved.getId())
+                .orElse(saved);
 
         // Save examples (max 3)
         if (request.getExamples() != null && !request.getExamples().isEmpty()) {
@@ -284,7 +293,14 @@ public class VocabularyGroupService {
         // Associate with group
         GroupWordMembership membership = new GroupWordMembership(group, saved);
         membershipRepository.save(membership);
-        srsService.initializeIfAbsent(saved);
+
+        // Initialize SRS record via native SQL — bypasses Hibernate @MapsId
+        // null-identifier issue that occurs when saving within the same transaction.
+        UUID wordId = saved.getId();
+        if (wordId != null) {
+            srsRepository.insertIfAbsent(wordId,
+                java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh")));
+        }
 
         return toWordResponse(saved);
     }

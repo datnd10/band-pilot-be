@@ -71,9 +71,14 @@ public class SrsService {
      *
      * @param wordEntry the word entry to initialise SRS scheduling for
      */
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void initializeIfAbsent(WordEntry wordEntry) {
         UUID wordId = wordEntry.getId();
+        if (wordId == null) {
+            log.warn("initializeIfAbsent called with null wordId — skipping SRS init for word '{}'",
+                    wordEntry.getWord());
+            return;
+        }
         if (srsRepository.existsById(wordId)) {
             log.debug("SRS record already exists for word id={}, skipping initialisation", wordId);
             return;
