@@ -162,7 +162,7 @@ public class ReviewSessionService {
      * Uses UUID v3 (name-based) with a fixed namespace for reproducibility.
      * Single-user apps will always get the same UUID for "admin".
      */
-    static UUID resolveUserId() {
+    public static UUID resolveUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null) {
             return NIL_UUID;

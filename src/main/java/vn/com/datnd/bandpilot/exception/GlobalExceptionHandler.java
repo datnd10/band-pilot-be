@@ -24,6 +24,20 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // ── 502 Bad Gateway (Gemini unavailable) ─────────────────────────────────────
+
+    @ExceptionHandler(GeminiUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleGeminiUnavailable(GeminiUnavailableException ex) {
+        return buildResponse(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
+    // ── 503 Service Unavailable (Gemini quota/auth) ───────────────────────────────
+
+    @ExceptionHandler(GeminiQuotaException.class)
+    public ResponseEntity<ErrorResponse> handleGeminiQuota(GeminiQuotaException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
     // ── 404 Not Found ────────────────────────────────────────────────────────────
 
     @ExceptionHandler(ResourceNotFoundException.class)
